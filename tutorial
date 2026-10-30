@@ -1,0 +1,247 @@
+# ================= PRACTICAL 1 =================
+
+git --version
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+git config --global init.defaultBranch main
+git config --list
+
+mkdir data-science-project
+cd data-science-project
+git init
+mkdir data notebooks src
+echo "# Data Science Project" > README.md
+printf "__pycache__/\n*.pyc\n.ipynb_checkpoints/\n.env\n" > .gitignore
+printf "pandas\nnumpy\nscikit-learn\nmatplotlib\n" > requirements.txt
+echo "print('Data Science Project')" > src/analysis.py
+echo "id,value" > data/sample.csv
+git status
+git add .
+git status
+git commit -m "Initial commit: project structure"
+git log --oneline
+
+git remote add origin https://github.com/<your-username>/data-science-project.git
+git remote -v
+git branch -M main
+git push -u origin main
+
+echo "print('Loading dataset')" >> src/analysis.py
+git status
+git diff
+git add src/analysis.py
+git commit -m "Add dataset loading step"
+git push origin main
+git log
+git log --oneline --graph
+git show HEAD
+
+git tag v1.0
+git push origin v1.0
+git tag
+
+
+# ================= PRACTICAL 2 =================
+
+git checkout main
+git pull origin main
+git branch
+
+git checkout -b feature-data-cleaning
+echo "print('Cleaning data')" > src/cleaning.py
+git add src/cleaning.py
+git commit -m "Add data cleaning module"
+git push -u origin feature-data-cleaning
+
+git checkout main
+git checkout -b feature-visualization
+echo "print('Plotting graphs')" > src/visualization.py
+git add src/visualization.py
+git commit -m "Add visualization module"
+git push -u origin feature-visualization
+
+git branch
+git branch -a
+
+git checkout main
+git merge feature-data-cleaning
+git merge feature-visualization
+git push origin main
+
+git checkout main
+git checkout -b feature-a
+echo "learning_rate = 0.01" > src/config.py
+git add src/config.py
+git commit -m "Set learning rate to 0.01 in feature-a"
+
+git checkout main
+git checkout -b feature-b
+echo "learning_rate = 0.05" > src/config.py
+git add src/config.py
+git commit -m "Set learning rate to 0.05 in feature-b"
+
+git checkout main
+git merge feature-a
+git merge feature-b
+git status
+git diff
+cat src/config.py
+
+echo "learning_rate = 0.03" > src/config.py
+git add src/config.py
+git commit -m "Resolve merge conflict in config.py"
+
+git log --oneline --graph --all
+git push origin main
+git push origin feature-a
+git push origin feature-b
+
+git branch -d feature-data-cleaning
+git branch -d feature-visualization
+git branch -d feature-a
+git branch -d feature-b
+git push origin --delete feature-data-cleaning
+git push origin --delete feature-visualization
+git push origin --delete feature-a
+git push origin --delete feature-b
+git branch -a
+
+
+# ================= PRACTICAL 3 =================
+
+gh auth login
+gh repo fork <original-owner>/<repo-name> --clone=false
+
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
+git remote add upstream https://github.com/<original-owner>/<repo-name>.git
+git remote -v
+
+git fetch upstream
+git checkout main
+git merge upstream/main
+git push origin main
+
+git checkout -b feature-add-documentation
+mkdir -p docs
+echo "# My Contribution" > docs/my_contribution.md
+git status
+git add docs/my_contribution.md
+git commit -m "Add documentation for new feature"
+git push -u origin feature-add-documentation
+
+gh pr create --repo <original-owner>/<repo-name> --base main --head <your-username>:feature-add-documentation --title "Add documentation for new feature" --body "This PR adds documentation for the new feature."
+gh pr list --repo <original-owner>/<repo-name>
+gh pr status
+
+git fetch upstream
+git checkout feature-add-documentation
+git merge upstream/main
+git status
+git diff
+echo "# My Contribution (resolved)" > docs/my_contribution.md
+git add docs/my_contribution.md
+git commit -m "Resolve merge conflict with upstream main"
+git push origin feature-add-documentation
+
+echo "Updated as per review comments" >> docs/my_contribution.md
+git add docs/my_contribution.md
+git commit -m "Address review comments"
+git push origin feature-add-documentation
+
+git log --oneline --graph --all
+gh pr view --repo <original-owner>/<repo-name> --web
+
+git checkout main
+git fetch upstream
+git merge upstream/main
+git push origin main
+git branch -d feature-add-documentation
+git push origin --delete feature-add-documentation
+
+icals 4 5 · TXT
+==================================================================
+PRACTICAL 4: HOW DEVOPS PRINCIPLES (CI/CD) IMPROVE DEPLOYMENT AND
+UPDATES FOR MACHINE LEARNING PROJECTS
+==================================================================
+ 
+1. WHAT IS DEVOPS?
+DevOps is a set of practices that joins development (writing code) and
+operations (deploying and running it) through automation, shared
+ownership and fast feedback. Applied to machine learning it is called
+MLOps.
+ 
+2. WHY ML PROJECTS NEED IT
+An ML project has three things that change: code, data and the model.
+Without automation, teams face "works on my machine" problems, models
+that cannot be reproduced, manual and error-prone deployment, and
+silent drops in model accuracy.
+ 
+3. CORE DEVOPS PRINCIPLES
+- Automation: build, test and deploy without manual steps.
+- Version control: code, configs and data versions are all tracked
+  (Git, DVC).
+- Continuous feedback: every change is validated within minutes.
+- Collaboration: one shared pipeline for data scientists and engineers.
+- Infrastructure as Code: environments are defined in files
+  (Dockerfile, requirements.txt, YAML).
+- Monitoring: production models are watched for errors and drift.
+ 
+4. CONTINUOUS INTEGRATION (CI)
+Every push to GitHub automatically triggers:
+- code checkout
+- dependency installation in a clean environment
+- linting and code style checks
+- unit tests (data validation, feature functions, model functions)
+- a quick training or smoke run to confirm the pipeline still works
+Benefit: bugs and broken code are caught early, and the main branch
+stays stable.
+ 
+5. CONTINUOUS DELIVERY / DEPLOYMENT (CD)
+After CI passes, the pipeline automatically:
+- trains or retrains the model
+- evaluates it against a minimum accuracy threshold
+- packages it (pickle/joblib file or Docker image)
+- stores it in a model registry or artifact store
+- deploys it to staging, then production (API, batch job, cloud)
+Benefit: updates are released quickly, repeatably and with a rollback
+option.
+ 
+6. CONTINUOUS TRAINING (CT) - SPECIFIC TO ML
+The pipeline retrains and redeploys the model automatically when new
+data arrives or when monitoring detects performance decay.
+ 
+7. TYPICAL ML CI/CD PIPELINE
+Code push -> Checkout -> Install dependencies -> Lint -> Unit tests ->
+Train model -> Evaluate -> Package/Archive model -> Deploy -> Monitor
+ 
+8. BENEFITS FOR ML PROJECTS
+- Faster releases: model updates reach users in minutes, not weeks.
+- Reproducibility: the same code and environment give the same result.
+- Higher quality: automated tests and accuracy checks block bad models.
+- Lower risk: small frequent changes are easier to debug and roll back.
+- Better teamwork: everyone works on a shared, tested codebase.
+- Traceability: every model is linked to a commit, build and dataset.
+ 
+9. COMMON TOOLS
+- Version control: Git, GitHub, DVC
+- CI/CD: Jenkins, GitHub Actions, GitLab CI
+- Containers: Docker, Kubernetes
+- Experiment tracking and registry: MLflow, Weights & Biases
+- Testing: pytest, Great Expectations
+- Monitoring: Prometheus, Grafana, Evidently
+ 
+10. CHALLENGES
+- Large datasets and models are hard to version with plain Git.
+- Training can be slow and need GPUs, so pipelines must be designed
+  carefully.
+- ML results are probabilistic, so tests use accuracy thresholds
+  instead of exact outputs.
+- Data drift can degrade a model after deployment.
+ 
+11. CONCLUSION
+CI/CD brings automation, consistency and fast feedback to the ML
+lifecycle, which makes deployments and model updates faster, safer and
+reproducible.
+ 
+ 
